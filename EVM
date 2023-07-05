@@ -1,91 +1,105 @@
-#include<stdio.h>
+#include <reg51.h>
+#define msec 1
 
-#define CANDIDATE_COUNT
+sbit s1=P3^2;//Input pins for four candidates
+sbit s2=P3^3;
+sbit s3=P3^4;
+sbit s4=P3^5;
 
-#define CANDIDATE1 "bhavani"
-#define CANDIDATE2 "Parvathi"
-#define CANDIDATE3 "parvathy"
-#define CANDIDATE4 "nandana"
+sbit ctrl_4=P1^0;//Declare the control pins of seven segments
+sbit ctrl_3=P1^1;
+sbit ctrl_2=P1^2;
+sbit ctrl_1=P1^3;
 
-int votesCount1=0, votesCount2=0, votesCount3=0, votesCount4=0, spoiledtvotes=0;
+unsigned int v1,v2,v3,v4;
 
-void castVote(){
-int choice;    
-printf("\n\n ### Please choose your Candidate ####\n\n");
-printf("\n 1. %s", CANDIDATE1);
-printf("\n 2. %s", CANDIDATE2);
-printf("\n 3. %s", CANDIDATE3);
-printf("\n 4. %s", CANDIDATE4);
-printf("\n 5. %s", "None of These");
+unsigned int digi_val[10]={0x40,0xF9,0x24,0x30,0x19,0x12,0x02,0xF8,0x00,0x10};
+unsigned int dig_1,dig_2,dig_3,dig_4;
 
-printf("\n\n Input your choice (1 - 4) : ");
-scanf("%d",&choice);
 
-switch(choice){
-    case 1: votesCount1++; break;
-    case 2: votesCount2++; break;
-    case 3: votesCount3++; break;
-    case 4: votesCount4++; break;
-    case 5: spoiledtvotes++; break;
-    default: printf("\n Error: Wrong Choice !! Please retry");
-             //hold the screen
-             getchar();
-}
-printf("\n thanks for vote !!");
-}
 
-void votesCount(){
-printf("\n\n ##### Voting Statics ####");
-printf("\n %s - %d ", CANDIDATE1, votesCount1);
-printf("\n %s - %d ", CANDIDATE1, votesCount2);
-printf("\n %s - %d ", CANDIDATE1, votesCount3);
-printf("\n %s - %d ", CANDIDATE1, votesCount4);
-printf("\n %s - %d ", "Spoiled Votes", spoiledtvotes); 
-}
-
-void getLeadingCandidate(){
-    printf("\n\n  #### Leading Candiate ####\n\n");
-    if(votesCount1>votesCount2 && votesCount1>votesCount3 && votesCount1 >votesCount4)
-    printf("[%s]",CANDIDATE1);
-    else if (votesCount2>votesCount3 && votesCount2>votesCount4 && votesCount2 >votesCount1)
-    printf("[%s]",CANDIDATE2);
-    else if(votesCount3>votesCount4 && votesCount3>votesCount2 && votesCount3 >votesCount1)
-    printf("[%s]",CANDIDATE3);
-    else if(votesCount4>votesCount1 && votesCount4>votesCount2 && votesCount4 >votesCount3)
-    printf("[%s]",CANDIDATE4);
-    else
-    printf("----- Warning !!! No-win situation----");    
-    
-    
-    
-}
-
-int main()
+void delay(unsigned int count)// Time delay function
 {
-int i;
-int choice;
-
-do{
-printf("\n\n ###### Welcome to Election/Voting 2023 #####");
-printf("\n\n 1. Cast the Vote");
-printf("\n 2. Find Vote Count");
-printf("\n 3. Find leading Candidate");
-printf("\n 0. Exit");
-
-printf("\n\n Please enter your choice : ");
-scanf("%d", &choice);
-
-switch(choice)
-{
-case 1: castVote();break;
-case 2: votesCount();break;
-case 3: getLeadingCandidate();break;
-default: printf("\n Error: Invalid Choice");
+unsigned int j,k;
+for (j=0;j<=count;j++)
+for (k=0;k<=50;k++);
 }
-}while(choice!=0);
 
-//hold the screen
-getchar();
+void digi_out(unsigned int current_num)// Funtion to display total votes
+{
+unsigned int dig_disp;
+dig_disp=current_num;
+P2 = digi_val[current_num];
+delay(msec);
+}
 
-return 0;
+
+void calc_vote()// Funtion to count the number of votes
+{
+while(1)
+{
+if (s1==0)
+{
+while (s1 == 0);//check if switch 1 is pressed
+{
+v1 = v1 + 1;
+if(v1==10)
+v1=0;
+}
+}
+
+if (s2==0)//check if switch 2 is pressed
+{
+while (s2 == 0);
+{
+v2 = v2 + 1;
+if(v2==10)
+v2=0;
+}
+}
+
+if (s3==0)//check if switch 3 is pressed
+{
+while (s3 == 0);
+{
+v3 = v3 + 1;
+if(v3==10)
+v3=0;
+}
+}
+
+if (s4==0)//check if switch 4 is pressed
+{
+while (s4 == 0);
+{
+v4 = v4 + 1;
+if(v4==10)
+v4=0;
+}
+}
+
+ctrl_1 = 1;
+ctrl_3 = ctrl_2 = ctrl_4 = 0;
+digi_out(v1);
+ctrl_2 = 1;
+ctrl_4 = ctrl_3 = ctrl_1 = 0;
+digi_out(v2);
+ctrl_3 = 1;
+ctrl_2 = ctrl_4 = ctrl_1 = 0;
+digi_out(v3);
+ctrl_4 = 1;
+ctrl_3 = ctrl_2 = ctrl_1 = 0;
+digi_out(v4);
+}
+}
+
+
+void main()
+{
+v1 = v2 = v3 = v4 = 0;
+s1 = s2 = s3 = s4 = 1;// Initialize the input pins
+while(1)
+{
+calc_vote();
+}
 }
